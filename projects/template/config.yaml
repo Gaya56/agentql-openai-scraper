@@ -1,0 +1,48 @@
+# Project Configuration
+name: "Template Project"
+description: "Template for new scraping projects"
+
+# Target URLs to scrape
+target_urls:
+  - "https://example.com"
+
+# AgentQL selectors
+# Use natural language or CSS selectors
+selectors:
+  title: "main heading"
+  content: "article body text"
+  author: "author name"
+  date: "publication date"
+  links: "all links in the article"
+
+# OpenAI analysis configuration
+analysis:
+  enabled: true
+  model: "gpt-4-turbo-preview"
+  prompt: |
+    Analyze the scraped content and provide:
+    1. A brief summary
+    2. Key insights
+    3. Main topics discussed
+    
+# Data processing
+processing:
+  # Clean and transform data
+  transformations:
+    title: "strip"
+    content: "strip"
+  
+  # Filter results
+  filters: {}
+  
+# Export configuration
+export:
+  formats: ["json", "csv"]  # Available: json, csv, excel
+  timestamp: true
+  
+# Advanced options
+advanced:
+  headless: true  # Run browser in headless mode
+  timeout: 30  # Page load timeout in seconds
+  retry_attempts: 3
+  delay_between_requests: 1  # Seconds
