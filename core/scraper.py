@@ -2,11 +2,8 @@
 
 import asyncio
 from typing import List, Dict, Any, Optional
-from agentql import create_async_playwright_page, QueryElements
-import agentql
-from playwright.async_api import Page
+from playwright.async_api import async_playwright, Page
 from loguru import logger
-import json
 
 
 class AgentQLScraper:
@@ -15,16 +12,31 @@ class AgentQLScraper:
     def __init__(self, headless: bool = True):
         self.headless = headless
         self.page: Optional[Page] = None
+        self.browser = None
+        self.context = None
         
     async def __aenter__(self):
         """Async context manager entry."""
-        self.page = await create_async_playwright_page(headless=self.headless)
+        # Create playwright browser and context
+        playwright = await async_playwright().start()
+        self.browser = await playwright.chromium.launch(headless=self.headless)
+        self.context = await self.browser.new_context()
+        
+        # Create page and wrap with AgentQL
+        page = await self.context.new_page()
+        
+        # Import AgentQL wrap function
+        from agentql.async_api._api import wrap_async
+        self.page = wrap_async(page)
+        
         return self
         
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit."""
-        if self.page:
-            await self.page.close()
+        if self.context:
+            await self.context.close()
+        if self.browser:
+            await self.browser.close()
             
     async def navigate(self, url: str) -> None:
         """Navigate to a URL."""
@@ -32,10 +44,10 @@ class AgentQLScraper:
         await self.page.goto(url)
         await self.page.wait_for_load_state('networkidle')
         
-    async def query(self, selector: str) -> QueryElements:
+    async def query(self, selector: str):
         """Query elements using AgentQL natural language selector."""
         logger.debug(f"Querying: {selector}")
-        return await self.page.query(selector)
+        return await self.page.query_elements(selector)
         
     async def extract_data(self, selectors: Dict[str, str]) -> Dict[str, Any]:
         """Extract data using multiple selectors."""
@@ -55,13 +67,23 @@ class AgentQLScraper:
                 
         return results
         
-    async def _extract_text(self, element: QueryElements) -> str:
+    async def _extract_text(self, element) -> str:
         """Extract text from an element."""
-        if hasattr(element, 'text_content'):
-            return await element.text_content()
-        return str(element)
+        try:
+            if hasattr(element, 'text_content'):
+                return await element.text_content()
+            elif hasattr(element, 'inner_text'):
+                return await element.inner_text()
+            return str(element)
+        except Exception as e:
+            logger.warning(f"Could not extract text: {e}")
+            return str(element)
         
-    async def scrape_multiple(self, urls: List[str], selectors: Dict[str, str]) -> List[Dict[str, Any]]:
+    async def scrape_multiple(
+        self,
+        urls: List[str],
+        selectors: Dict[str, str]
+    ) -> List[Dict[str, Any]]:
         """Scrape multiple URLs with the same selectors."""
         results = []
         
