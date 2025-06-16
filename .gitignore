@@ -10,6 +10,10 @@ ENV/
 
 # Environment variables
 .env
+.env.local
+.env.production
+# But allow .env.example template
+!.env.example
 
 # Data and logs
 data/
@@ -32,3 +36,31 @@ projects/*/temp/
 
 # Exclude example data
 !projects/examples/sample_data/
+
+# Ollama and LLM specific
+ollama_models/
+model_cache/
+embeddings_cache/
+*.db
+*.sqlite
+*.sqlite3
+
+# MCP specific
+mcp_logs/
+mcp_cache/
+mcp_server_data/
+
+# LangChain
+langchain_cache/
+.langchain/
+langchain.log
+
+# Integration staging (temporary reference files - can be committed)
+# integration-staging/
+temp-*/
+*-analysis/
+*-reference/
+
+# Agent execution logs
+agent_logs/
+execution_traces/

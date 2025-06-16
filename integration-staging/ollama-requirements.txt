@@ -1,0 +1,13 @@
+# 🔄 Core MCP and LangChain Packages
+langchain            # LangChain framework
+langchain-core       # Core LangChain functionalities
+langchain-community  # Community tools and integrations
+langchain-mcp-adapters # MCP adapters for LangChain
+fastmcp              # FastMCP server implementation
+
+# 🤖 LLM Integration
+langchain-ollama     # Ollama integration for LangChain
+
+# 🔌 Networking and Async
+httpx                # Async HTTP client
+nest-asyncio         # Nested async support
